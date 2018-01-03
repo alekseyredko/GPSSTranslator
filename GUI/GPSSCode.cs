@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-namespace GUI
+namespace Translator
 {
     static class GPSSCode
     {
