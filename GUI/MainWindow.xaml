@@ -1,0 +1,53 @@
+﻿<Window x:Class="GUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:GUI"
+        MinHeight="350" MinWidth="500" Title="GPSSTranslator" Height="350" Width="500">
+    <Grid>
+        <TabControl x:Name="Tabs" Margin="10,26,10,10">
+            <TabItem Header="Матрица">
+                <Grid>
+                    <Button Click="OpenFileButton_Click" x:Name="OpenFileButton" Content="Выбрать файл" Margin="0,34,20,0"
+                  RenderTransformOrigin="1.707,2.3" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right"
+                  Width="87"/>
+                    <TextBlock Margin="10,10,0,0" TextWrapping="Wrap" Text="Матрица переходов" Height="27" VerticalAlignment="Top"
+                     HorizontalAlignment="Left" Width="114"/>
+                    <TextBox x:Name="MatrixTextBox" Margin="10,34,130,10" TextWrapping="Wrap" AcceptsReturn="true"
+                   Text="Введите матрицу"/>
+                    <Button Click="BuildTreeButton_Click" x:Name="BuildTreeButton" Content="Код"
+                  HorizontalAlignment="Right" Margin="0,59,20,0" VerticalAlignment="Top" Width="87"/>
+                    <Button Click="PasteMatrixButton_Click" x:Name="PasteMatrixButton" Content="Вставить" Margin="0,214,20,0"
+                  HorizontalAlignment="Right" Width="87" Height="20" VerticalAlignment="Top"/>
+                    <Button Click="CopyMatrixButton_Click" x:Name="CopyMatrixButton" Content="Копировать" Margin="0,189,20,0"
+                  VerticalAlignment="Top" HorizontalAlignment="Right" Width="87"/>
+                    <Button x:Name="TreeButton" Content="Дерево" Margin="0,84,20,0" Click="TreeButton_Click" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="87"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Код">
+                <Grid>
+                    <TextBox x:Name="CodeTextBox" Margin="10,10,102,26" TextWrapping="Wrap" AcceptsReturn="true"
+                   VerticalScrollBarVisibility="Auto"/>
+                    <Button Click="CopyButton_Click" x:Name="CopyButton" Content="Копировать" HorizontalAlignment="Right"
+                  Margin="0,10,10,0" VerticalAlignment="Top" Width="75"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Дерево">
+                <Grid Name="TreeGridView">
+                </Grid>
+            </TabItem>
+
+
+        </TabControl>
+        <Menu Height="20" VerticalAlignment="Top">
+            <MenuItem Header="Матрица">
+                <MenuItem Click="OpenFileButton_Click" Name="MatrixOpenItem" Header="Открыть"/>
+            </MenuItem>
+            <MenuItem Header="Код">
+                <MenuItem Click="CodeSaveItem_Click" Name="CodeSaveItem" Header="Сохранить"/>
+                <MenuItem Click="BuildTreeButton_Click" Name="BuildCodeItem" Header="Построить"/>
+            </MenuItem>
+        </Menu>
+    </Grid>
+</Window>
