@@ -31,12 +31,14 @@
                    VerticalScrollBarVisibility="Auto"/>
                     <Button Click="CopyButton_Click" x:Name="CopyButton" Content="Копировать" HorizontalAlignment="Right"
                   Margin="0,10,10,0" VerticalAlignment="Top" Width="75"/>
+                    <Button Content="Сохранить" x:Name="SaveCodeButton" Click="CodeSaveItem_Click" Width="75" Margin="381,35,10,200"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Дерево">
                 <Grid Name="TreeGridView">
                 </Grid>
             </TabItem>
+
 
 
         </TabControl>

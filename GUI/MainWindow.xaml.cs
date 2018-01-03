@@ -41,7 +41,8 @@ namespace GUI
             this.matrix = new Matrix(text);
             if (!this.matrix.IsValidMatrix())
             {
-                int num = (int)System.Windows.MessageBox.Show("Ошибка. Неверная матрица", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Hand);
+                System.Windows.MessageBox.Show("Ошибка. Неверная матрица", "Ошибка", 
+                    MessageBoxButton.OK, MessageBoxImage.Hand);
                 this.BuildTreeButton.IsEnabled = false;
             }
             else
@@ -131,6 +132,17 @@ namespace GUI
         //TODO: добавить сохранение кода в txt
         private void CodeSaveItem_Click(object sender, RoutedEventArgs e)
         {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+        
+            if (saveFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            {
+                return;
+            }
+            else
+            {
+                File.WriteAllText(saveFileDialog.FileName, GPSSCode.Code);
+            }
         }
 
         private void TreeButton_Click(object sender, RoutedEventArgs e)
