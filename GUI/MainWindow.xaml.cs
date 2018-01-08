@@ -84,71 +84,23 @@ namespace Translator
         }
 
         //визуализация дерева
-        //TODO: переделать под WPF
-        //сделать дерево, а не схему сети
-        private void VisualizeTree(GPSSNode tree)
+        private void Visualize(Graph graph, Grid grid, LayerDirection layerDirection)
         {
             //TreeGridView
             System.Windows.Forms.Integration.WindowsFormsHost host =
                 new System.Windows.Forms.Integration.WindowsFormsHost();
             //create a viewer object 
             GViewer viewer = new GViewer();
-            //create a graph object 
-            Graph graph = new Graph("graph");
+            
             //create the graph content 
-
-            var vertex = GPSSCode.Vertex;
-
-            //for (int i = 0; i < vertex.Count; i++)
-            //{
-            //    for (int j = 0; j < vertex[i].Children.Count; j++)
-            //    {                   
-            //        if(graph.Edges.Where(x=>x.Source == vertex[i].Name.ToString() && 
-            //            x.Target == vertex[i].Children[j].Name.ToString()).Count() == 0)
-            //        {
-            //            if(vertex[i].Transfers.Count > 1)
-            //            {
-            //                graph.AddEdge(vertex[i].Name.ToString(), vertex[i].Transfers[j].ToString(),
-            //                vertex[i].Children[j].Name.ToString());
-            //            }
-            //            else
-            //            {
-            //                graph.AddEdge(vertex[i].Name.ToString(),
-            //                vertex[i].Children[j].Name.ToString());
-            //            }
-            //        }                   
-            //    }
-            //}
-
-            for (int i = 0; i < vertex.Count; i++)
-            {
-                for (int j = 0; j < vertex[i].Children.Count; j++)
-                {
-                    if (graph.Edges.Where(x => x.Source == vertex[i].Name.ToString() &&
-                         x.Target == vertex[i].Children[j].Name.ToString()).Count() == 0)
-                    {
-                        if (vertex[i].Transfers.Count > 1)
-                        {
-                            graph.AddEdge(vertex[i].Name.ToString(), vertex[i].Transfers[j].ToString(),
-                            vertex[i].Children[j].Name.ToString());
-                        }
-                        else
-                        {
-                            graph.AddEdge(vertex[i].Name.ToString(),
-                            vertex[i].Children[j].Name.ToString());
-                        }
-                    }
-                }
-            }
-
-            graph.Attr.LayerDirection = LayerDirection.TB;
+            graph.Attr.LayerDirection = layerDirection;
             //bind the graph to the viewer 
             viewer.Graph = graph;
             //associate the viewer with the form            
             viewer.Dock = DockStyle.Fill;
            
             host.Child = viewer;
-            TreeGridView.Children.Add(host);
+            grid.Children.Add(host);
         }
 
         private void CodeSaveItem_Click(object sender, RoutedEventArgs e)
@@ -168,7 +120,96 @@ namespace Translator
 
         private void TreeButton_Click(object sender, RoutedEventArgs e)
         {
-            VisualizeTree(tree);
+            var graph = BuildTree();
+            Visualize(graph, TreeGridView , LayerDirection.TB);
+        }
+
+        private void SchemBuild_Click(object sender, RoutedEventArgs e)
+        {
+            var graph = BuildScheme();
+            Visualize(graph, SchemGridView, LayerDirection.LR);
+        }
+
+        private Graph BuildTree()
+        {
+            Graph graph = new Graph("graph");
+            var vertex = GPSSCode.Vertex;
+            
+            vertex = vertex.Distinct().ToList();
+            //прямой обход
+            for (int i = 0; i < vertex.Count; i++)
+            {
+                if (vertex[i].Children.Count != 0)
+                {
+                    for (int j = 0; j < vertex[i].Children.Count; j++)
+                    {
+                        if (vertex[i].Children[j].Name == i + 1)
+                        {
+                            graph.AddEdge(vertex[i].Name.ToString(),
+                            vertex[i].Children[j].Name.ToString());
+                        }
+                    }
+                }
+            }
+            string space = " ";
+            //добавление деток
+            for (int i = 0; i < vertex.Count; i++)
+            {
+
+                for (int j = 0; j < vertex[i].Children.Count; j++)
+                {
+                    if (graph.Edges.Where(x => x.Source == vertex[i].Name.ToString() &&
+                         x.Target == vertex[i].Children[j].Name.ToString()).Count() == 0)
+                    {
+                        graph.AddEdge(vertex[i].Name.ToString(),
+                           vertex[i].Children[j].Name.ToString() + space);
+                    }
+                    space += " ";
+                }
+            }
+
+            return graph;
+        }
+
+        private Graph BuildScheme()
+        {
+            Graph graph = new Graph("graph");
+            var vertex = GPSSCode.Vertex;
+
+            
+            for (int i = 0; i < vertex.Count; i++)
+            {
+                for (int j = 0; j < vertex[i].Children.Count; j++)
+                {
+                    if (graph.Edges.Where(x => x.Source == vertex[i].Name.ToString() &&
+                         x.Target == vertex[i].Children[j].Name.ToString()).Count() == 0)
+                    {
+
+                        if (vertex[i].Transfers.Count >= 2)
+                        {
+                            if (vertex[i].Transfers.Count == 2)
+                            {
+                                graph.AddEdge(vertex[i].Name.ToString(),
+                                    vertex[i].Transfers[j].ToString(),
+                                     vertex[i].Children[j].Name.ToString());
+                            }
+                            if (vertex[i].Transfers.Count > 2)
+                            {
+                                graph.AddEdge(vertex[i].Name.ToString(),
+                                    (vertex[i].Transfers[j] * (1 - vertex[i].Transfers[0])).ToString(),
+                                     vertex[i].Children[j].Name.ToString());
+                            }
+                        }
+                        else
+                        {
+                            graph.AddEdge(vertex[i].Name.ToString(),
+                            vertex[i].Children[j].Name.ToString());
+                        }
+                    }
+                }
+            }
+
+            return graph;
         }
     }
 }

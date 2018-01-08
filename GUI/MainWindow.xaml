@@ -34,7 +34,10 @@
                 <Grid Name="TreeGridView">
                 </Grid>
             </TabItem>
-
+            <TabItem Header="Схема">
+                <Grid Name="SchemGridView">
+                </Grid>
+            </TabItem>
 
 
         </TabControl>
@@ -48,6 +51,9 @@
             </MenuItem>
             <MenuItem Header="Дерево">
                 <MenuItem Click="TreeButton_Click" Name="VisualTreeBuild" Header="Построить"/>
+            </MenuItem>
+            <MenuItem Header="Схема">
+                <MenuItem  Name="SchemBuild" Header="Построить" Click="SchemBuild_Click"/>
             </MenuItem>
         </Menu>
     </Grid>

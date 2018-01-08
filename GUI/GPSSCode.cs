@@ -96,6 +96,10 @@ namespace Translator
                     }
                     else
                     {
+                        if(tree.Children.Count > 2)
+                        {
+                           tree.Transfers[index] = tree.Transfers[index] / (1 - tree.Transfers[0]);                           
+                        }
                         tree.NodeCode += GPSSCode.AddTransferCode(tree, tree.Transfers[index], tree.Children[index]);
                     }           
                 }                

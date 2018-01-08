@@ -49,12 +49,7 @@ namespace Translator
             this.Name = Name;
             NodeCode = $"\nlabel_{Name} block_{Name}\n";
         }
-
-        public GPSSNode()
-        {
-
-        }
-
+       
         public static GPSSNode BuildTree(Matrix m)
         {
             var matrix = m.GetMatrix;
@@ -89,14 +84,7 @@ namespace Translator
                     if (matrix[i][j] != 0 &&  matrix[i][j]<1)
                     {                        
                         node.children.Add(new GPSSNode(node, j));
-                        if (matrix[i].Count(x => x !=0)>2)
-                        {
-                            node.transfers.Add(matrix[i][j] / (1 - matrix[i].First(x => x != 0)));
-                        }
-                        else
-                        {
-                            node.transfers.Add(matrix[i][j]);
-                        }
+                        node.transfers.Add(matrix[i][j]);
                     }
 
                     if(matrix[i][j] == 1)
