@@ -171,6 +171,7 @@ namespace Translator
             return graph;
         }
 
+        //TODO: переделать схему построения, вывод вероятностей с 3
         private Graph BuildScheme()
         {
             Graph graph = new Graph("graph");

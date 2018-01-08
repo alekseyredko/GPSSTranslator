@@ -1,0 +1,8 @@
+
+block_0
+TRANSFER 0,1,, label_2
+
+block_1
+
+label_2 block_2
+TERMINATE 1

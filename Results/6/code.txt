@@ -1,0 +1,15 @@
+
+block_0
+TRANSFER 0,3,, label_3
+
+block_1
+TRANSFER 0,285714285714286,, label_3
+TRANSFER 0,714285714285714,, label_4
+
+block_2
+TRANSFER 0,1,, label_4
+
+label_3 block_3
+
+label_4 block_4
+TERMINATE 1

@@ -1,0 +1,13 @@
+
+block_0
+
+label_1 block_1
+
+label_2 block_2
+TRANSFER 0,25,, label_1
+TRANSFER 0,4,, label_2
+
+block_3
+
+block_4
+TERMINATE 1
