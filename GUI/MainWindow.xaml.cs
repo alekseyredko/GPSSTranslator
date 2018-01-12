@@ -13,15 +13,11 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-//using Microsoft.Win32;
 using System.Windows.Forms;
 using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.GraphViewerGdi;
 namespace Translator
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private Matrix matrix;
@@ -66,6 +62,9 @@ namespace Translator
                 CodeTextBox.Text = GPSSCode.Code;
                 //System.Windows.MessageBox.Show("ГОТОВО");
             }
+
+            ResultTextBox.Text += "Код построен\n";
+
         }
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
@@ -122,6 +121,7 @@ namespace Translator
         {
             var graph = BuildTree();
             Visualize(graph, TreeGridView , LayerDirection.TB);
+            ResultTextBox.Text += "Дерево показано\n";
         }
 
         private void SchemBuild_Click(object sender, RoutedEventArgs e)
