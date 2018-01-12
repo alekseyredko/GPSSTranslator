@@ -41,6 +41,7 @@ namespace Translator
                    string.Format("DEPART {0}\n", block));
         }
 
+        //TODO: переделать 
         public static void MakeCode(GPSSNode tree)
         {
             GPSSCode.Code = "";
