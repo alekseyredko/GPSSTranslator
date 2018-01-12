@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Windows;
-using System.Windows.Controls;
 namespace Translator
 {
-    static class GPSSCode
+    public static class GPSSCode
     {
         private static List<GPSSNode> visited = new List<GPSSNode>();
 

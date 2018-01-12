@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace Translator
 {
-    class GPSSNode
+    public class GPSSNode
     {
         List<GPSSNode> children = new List<GPSSNode>();
         List<double> transfers = new List<double>();//вероятности перехода         

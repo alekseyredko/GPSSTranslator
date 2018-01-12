@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace Translator
 {
-    class Matrix
+    public class Matrix
     {
         private double[][] matrix;
         private string[] text;       
@@ -57,7 +57,7 @@ namespace Translator
             catch (Exception e)
             {
                 //Array.Clear(matrix,0,text.Length);
-                System.Windows.MessageBox.Show(e.ToString());
+                //TODO: обработать исключения
                 return false;
             }
         }
