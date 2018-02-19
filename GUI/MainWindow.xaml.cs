@@ -20,8 +20,9 @@ namespace Translator
 {
     public partial class MainWindow : Window
     {
-        private Matrix matrix;
+        private NetworkData NetData;
         private GPSSNode tree;
+        private CodeBuilder builder;
         public MainWindow()
         {
             InitializeComponent();
@@ -33,38 +34,35 @@ namespace Translator
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                 return;
-            string[] text = File.ReadAllLines(openFileDialog.FileName);
-            this.matrix = new Matrix(text);
-            if (!this.matrix.IsValidMatrix())
+            NetData = new NetworkData();
+            if (!NetData.IsDataReaded(openFileDialog.FileName))
             {
-                System.Windows.MessageBox.Show("Ошибка. Неверная матрица", "Ошибка", 
-                    MessageBoxButton.OK, MessageBoxImage.Hand);
-                this.BuildTreeButton.IsEnabled = false;
+                System.Windows.MessageBox.Show("Ошибка. Неверная матрица", "Ошибка");
+                BuildTreeButton.IsEnabled = false;
             }
             else
             {
-                this.MatrixTextBox.Text = string.Join("\n", text);
+                this.MatrixTextBox.Text = string.Join("\n", NetData.NodeDesc);               
                 this.BuildTreeButton.IsEnabled = true;
             }
         }
 
         private void BuildTreeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this.matrix == null)
+            if (this.NetData == null)
             {
                 System.Windows.MessageBox.Show("Матрица не выбрана");
             }
             else
             {
-                tree = GPSSNode.BuildTree(matrix);
+                tree = GPSSNode.BuildTree(NetData);
                 //построение кода
-                GPSSCode.MakeCode(tree);
-                CodeTextBox.Text = GPSSCode.Code;
-                //System.Windows.MessageBox.Show("ГОТОВО");
+                builder = new CodeBuilder(tree, NetData);
+
+                builder.MakeCode(tree);
+                CodeTextBox.Text = builder.Code;                
             }
-
             ResultTextBox.Text += "Код построен\n";
-
         }
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
@@ -113,7 +111,7 @@ namespace Translator
             }
             else
             {
-                File.WriteAllText(saveFileDialog.FileName, GPSSCode.Code);
+                File.WriteAllText(saveFileDialog.FileName, builder.Code);
             }
         }
 
@@ -133,7 +131,7 @@ namespace Translator
         private Graph BuildTree()
         {
             Graph graph = new Graph("graph");
-            var vertex = GPSSCode.Vertex;
+            var vertex = builder.Vertex;
             
             vertex = vertex.Distinct().ToList();
             //прямой обход
@@ -175,7 +173,7 @@ namespace Translator
         private Graph BuildScheme()
         {
             Graph graph = new Graph("graph");
-            var vertex = GPSSCode.Vertex;
+            var vertex = builder.Vertex;
 
             
             for (int i = 0; i < vertex.Count; i++)
