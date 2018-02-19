@@ -34,6 +34,7 @@ namespace Translator
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                 return;
+            //считывание данных сети
             NetData = new NetworkData();
             if (!NetData.IsDataReaded(openFileDialog.FileName))
             {
@@ -42,11 +43,13 @@ namespace Translator
             }
             else
             {
+                //вывод данных сети
                 this.MatrixTextBox.Text = string.Join("\n", NetData.NodeDesc);               
                 this.BuildTreeButton.IsEnabled = true;
             }
         }
 
+        //построение кода 
         private void BuildTreeButton_Click(object sender, RoutedEventArgs e)
         {
             if (this.NetData == null)
@@ -55,12 +58,11 @@ namespace Translator
             }
             else
             {
+                //построение дерева
                 tree = GPSSNode.BuildTree(NetData);
-                //построение кода
+                //добавление кода в узлы
                 builder = new CodeBuilder(tree, NetData);
-
-                builder.MakeCode(tree);
-                CodeTextBox.Text = builder.Code;                
+                CodeTextBox.Text = builder.MakeCode(tree);
             }
             ResultTextBox.Text += "Код построен\n";
         }
@@ -100,6 +102,7 @@ namespace Translator
             grid.Children.Add(host);
         }
 
+        //сохранение кода в txt файлик
         private void CodeSaveItem_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
@@ -128,6 +131,8 @@ namespace Translator
             Visualize(graph, SchemGridView, LayerDirection.LR);
         }
 
+        //построение дерева
+        //TODO: сделать рекурсивным
         private Graph BuildTree()
         {
             Graph graph = new Graph("graph");
@@ -170,6 +175,8 @@ namespace Translator
         }
 
         //TODO: переделать схему построения, вывод вероятностей с 3
+        //TODO: сделать рекурсивным
+        //построение схемы сети
         private Graph BuildScheme()
         {
             Graph graph = new Graph("graph");

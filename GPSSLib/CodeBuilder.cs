@@ -24,14 +24,8 @@ namespace Translator
             get => visited;
         }
 
-        public string Code { get; set; } = "";
-
-        //передавать тип распределения
-        //public static string AddGenerateBlock(params double[] options)
-        //{
-        //    return string.Format(string.Format("GENERATE {0}\n", string.Join(",", options)));
-        //}
-
+        public string Code { get; private set; } = "";
+                
         public static string AddTerminateteBlock(double option, int name)
         {
             return string.Format(string.Format("TERMINATE {0}\n", option));
@@ -39,11 +33,17 @@ namespace Translator
 
         public static string AddTransferCode(GPSSNode node, double option, GPSSNode childNode)
         {
-            return string.Format(string.Format("TRANSFER {0:N2},, label_{1}\n", option, childNode.Name));
+            return string.Format("TRANSFER {0:N2},, label_{1}\n", option, childNode.Name)
+                .Replace(" 0,", " 0.");
         }
-
-        //использовать для задания узла
-        public static string AddNodeCode(string nodeType, int nodeName)
+        
+        /// <summary>
+        /// Метод для добавления кода в узел
+        /// </summary>
+        /// <param name="nodeType">Параметры узла</param>
+        /// <param name="nodeName">Имя узла</param>
+        /// <returns></returns>
+        public static string AddNodeCode(string nodeType, string nodeCode, int nodeName)
         {
             string[] param = nodeType.Split(' ');
             string res = "";
@@ -61,6 +61,7 @@ namespace Translator
                         string.Format("ADVANCE ({0}({1}))\n", param[1], string.Join(",", param.Skip(2))) + 
                         string.Format("RELEASE b_{0}\n", nodeName));
                     break;
+                    //вынести в отдельные методы
                 case "FACILITY_MULTICHANNEL":
                     res += string.Format(string.Format("b_{0} STORAGE {1} \n", nodeName, param[1]) +
                         string.Format("ENTER b_{0}\n", nodeName) +
@@ -68,8 +69,8 @@ namespace Translator
                         string.Format("LEAVE b_{0}\n", nodeName));
                     break;
             }
-
-            return res;
+            return nodeCode.Substring(0, nodeCode.IndexOf(' ')+1)
+                + res + nodeCode.Substring(nodeCode.IndexOf(' ')+1);
         }
 
         public static string AddDistribution(string dist, params double[] values)
@@ -84,17 +85,21 @@ namespace Translator
                    string.Format("DEPART {0}\n", block));
         }
 
-        //TODO: переделать 
-        public void MakeCode(GPSSNode tree)
+        //метод для построения кода 
+        public string MakeCode(GPSSNode tree)
         {
             Code = "";
             visited.Clear();
+            //добавление кода в узлы
             BuildCode(tree);
+            //обход дерева для записи в строку
             ShowCode(tree);
+            //очистка кода от transfe
             ClearCode();
+            return Code;
         }
 
-        //объединить методы построения и показа дерева
+        //обход дерева для записи в строку
         private void ShowCode(GPSSNode tree)
         {
             if (visited.Exists((x => x.Name == tree.Name)))
@@ -127,29 +132,27 @@ namespace Translator
                 tree.NodeCode += CodeBuilder.AddTerminateteBlock(1.0, 1);
             }
             else
-            {                
+            {
                 for (int index = 0; index < tree.Children.Count; ++index)
                 {
-                    if((tree.Name + 1) == tree.Children[index].Name)
+                    if ((tree.Name + 1) == tree.Children[index].Name)
                     {
-                        tree.NodeCode += AddNodeCode(networkData.GetNextNodeDesc, tree.Name);
+                        tree.NodeCode = AddNodeCode(networkData.GetNextNodeDesc, tree.NodeCode, tree.Name);
                         BuildCode(tree.Children[index]);
-                        
                     }
                     else
                     {
-                        if(tree.Children.Count > 2)
+                        if (tree.Children.Count > 2)
                         {
-                           tree.Transfers[index] = tree.Transfers[index] / (1 - tree.Transfers[0]);                           
+                            tree.Transfers[index] = tree.Transfers[index] / (1 - tree.Transfers[0]);
                         }
-                        //добавлять параметры узла
-                        
                         tree.NodeCode += CodeBuilder.AddTransferCode(tree, tree.Transfers[index], tree.Children[index]);
-                    }           
-                }                
+                    }
+                }
             }
         }
-        
+
+
         private void ClearCode()
         {
             for (int i = 0; i < visited.Count; i++)

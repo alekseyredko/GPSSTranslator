@@ -23,7 +23,7 @@
             <TabItem Header="Код">
                 <Grid>
                     <TextBox x:Name="CodeTextBox" Margin="10,10,130,10" TextWrapping="Wrap" AcceptsReturn="true"
-                   VerticalScrollBarVisibility="Auto" FontFamily="Courier New"/>
+                   VerticalScrollBarVisibility="Auto" FontFamily="Courier New" FontSize="12"/>
                     <Button Click="CopyButton_Click" x:Name="CopyButton" Content="Копировать" HorizontalAlignment="Right"
                   Margin="0,189,10,0" VerticalAlignment="Top" Width="115"/>
                     <Button Content="Сохранить" x:Name="SaveCodeButton" Click="CodeSaveItem_Click" Width="115" 
