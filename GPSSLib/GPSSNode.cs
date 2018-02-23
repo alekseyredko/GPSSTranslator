@@ -1,17 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
 
 namespace Translator
 {
-    class GPSSNode
+    //TODO: представить узлы в виде коллекции
+    public class GPSSNode
     {
         List<GPSSNode> children = new List<GPSSNode>();
         List<double> transfers = new List<double>();//вероятности перехода         
         bool IsVisited = false;
-        
 
         public GPSSNode Parent
         {
@@ -21,12 +19,12 @@ namespace Translator
 
         public List<GPSSNode> Children
         {
-            get => children;
+            get { return children; }
         }
 
         public List<double> Transfers
         {
-            get => transfers;
+            get { return transfers; }
         }
 
         public string NodeCode { get; set; } = "";
@@ -47,17 +45,17 @@ namespace Translator
         {
             this.Parent = Parent;
             this.Name = Name;
-            NodeCode = $"\nlabel_{Name} block_{Name}\n";
+            NodeCode = $"\nlabel_{Name} ";
         }
        
-        public static GPSSNode BuildTree(Matrix m)
+        public static GPSSNode BuildTree(NetworkData m)
         {
-            var matrix = m.GetMatrix;
+            var matrix = m.Matrix;
             var node = new GPSSNode(null, 0);
             node.IsVisited = true;
             Last = matrix.Length-1;
 
-            var visitedNodes = new List<int>();
+            var visitedNodes = new List<GPSSNode>();
 
             for (int i = 0; i < matrix.Length; i++)
             {
@@ -77,7 +75,7 @@ namespace Translator
 
                 for (int j = 0; j < matrix[i].Length; j++)
                 {
-                    if (visitedNodes.Exists(x => x == node.Name))
+                    if (visitedNodes.Exists(x => x.Name == node.Name))
                     {
                         break;
                     }
@@ -101,7 +99,7 @@ namespace Translator
                     while (AreAllChildrenVisited(node))
                     {
                         node.IsVisited = true;
-                        visitedNodes.Add(node.Name);
+                        visitedNodes.Add(node);
 
                         node = node.Parent;
                         i--;
