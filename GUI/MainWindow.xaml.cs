@@ -13,19 +13,16 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-//using Microsoft.Win32;
 using System.Windows.Forms;
 using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.GraphViewerGdi;
 namespace Translator
 {
-    /// <summary>
-    /// Логика взаимодействия для MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
-        private Matrix matrix;
+        private NetworkData NetData;
         private GPSSNode tree;
+        private CodeBuilder builder;
         public MainWindow()
         {
             InitializeComponent();
@@ -37,35 +34,37 @@ namespace Translator
             OpenFileDialog openFileDialog = new OpenFileDialog();
             if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                 return;
-            string[] text = File.ReadAllLines(openFileDialog.FileName);
-            this.matrix = new Matrix(text);
-            if (!this.matrix.IsValidMatrix())
+            //считывание данных сети
+            NetData = new NetworkData();
+            if (!NetData.IsDataReaded(openFileDialog.FileName))
             {
-                System.Windows.MessageBox.Show("Ошибка. Неверная матрица", "Ошибка", 
-                    MessageBoxButton.OK, MessageBoxImage.Hand);
-                this.BuildTreeButton.IsEnabled = false;
+                System.Windows.MessageBox.Show("Ошибка. Неверная матрица", "Ошибка");
+                BuildTreeButton.IsEnabled = false;
             }
             else
             {
-                this.MatrixTextBox.Text = string.Join("\n", text);
+                //вывод данных сети
+                this.MatrixTextBox.Text = string.Join("\n", NetData.NodeDesc);               
                 this.BuildTreeButton.IsEnabled = true;
             }
         }
 
+        //построение кода 
         private void BuildTreeButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this.matrix == null)
+            if (this.NetData == null)
             {
                 System.Windows.MessageBox.Show("Матрица не выбрана");
             }
             else
             {
-                tree = GPSSNode.BuildTree(matrix);
-                //построение кода
-                GPSSCode.MakeCode(tree);
-                CodeTextBox.Text = GPSSCode.Code;
-                //System.Windows.MessageBox.Show("ГОТОВО");
+                //построение дерева
+                tree = GPSSNode.BuildTree(NetData);
+                //добавление кода в узлы
+                builder = new CodeBuilder(tree, NetData);
+                CodeTextBox.Text = builder.MakeCode(tree);
             }
+            ResultTextBox.Text += "Код построен\n";
         }
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
@@ -103,6 +102,7 @@ namespace Translator
             grid.Children.Add(host);
         }
 
+        //сохранение кода в txt файлик
         private void CodeSaveItem_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
@@ -114,7 +114,7 @@ namespace Translator
             }
             else
             {
-                File.WriteAllText(saveFileDialog.FileName, GPSSCode.Code);
+                File.WriteAllText(saveFileDialog.FileName, builder.Code);
             }
         }
 
@@ -122,6 +122,7 @@ namespace Translator
         {
             var graph = BuildTree();
             Visualize(graph, TreeGridView , LayerDirection.TB);
+            ResultTextBox.Text += "Дерево показано\n";
         }
 
         private void SchemBuild_Click(object sender, RoutedEventArgs e)
@@ -130,10 +131,12 @@ namespace Translator
             Visualize(graph, SchemGridView, LayerDirection.LR);
         }
 
+        //построение дерева
+        //TODO: сделать рекурсивным
         private Graph BuildTree()
         {
             Graph graph = new Graph("graph");
-            var vertex = GPSSCode.Vertex;
+            var vertex = builder.Vertex;
             
             vertex = vertex.Distinct().ToList();
             //прямой обход
@@ -172,10 +175,12 @@ namespace Translator
         }
 
         //TODO: переделать схему построения, вывод вероятностей с 3
+        //TODO: сделать рекурсивным
+        //построение схемы сети
         private Graph BuildScheme()
         {
             Graph graph = new Graph("graph");
-            var vertex = GPSSCode.Vertex;
+            var vertex = builder.Vertex;
 
             
             for (int i = 0; i < vertex.Count; i++)
