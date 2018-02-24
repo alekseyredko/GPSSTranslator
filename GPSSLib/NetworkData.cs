@@ -16,7 +16,7 @@ namespace Translator
         //добавить описание узлов
         public double[][] Matrix
         {
-            get => matrix;
+            get { return matrix; }
         }
 
         public string[] NodeDesc { get; private set; }
