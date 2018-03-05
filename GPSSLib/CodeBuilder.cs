@@ -2,27 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-namespace Translator
+namespace GPSSLib
 {
     public class CodeBuilder
     {
         private  List<GPSSNode> visited = new List<GPSSNode>();
 
-        GPSSNode tree;
         NetworkData networkData;
 
-        public CodeBuilder(GPSSNode node, NetworkData data)
+        public CodeBuilder(NetworkData data)
         {
-            tree = node;
             networkData = data;
         }
 
 
         //TODO: реализовать коллекцию
-        public List<GPSSNode> Vertex
-        {
-            get { return visited; }
-        }
+        //public List<GPSSNode> Vertex
+        //{
+        //    get { return visited; }
+        //}
 
         public string Code { get; private set; } = "";
                 
@@ -86,18 +84,22 @@ namespace Translator
         }
 
         //метод для построения кода 
-        public string MakeCode(GPSSNode tree)
+        public string MakeCode()
         {
             Code = "";
-            visited.Clear();
-            //добавление кода в узлы
-            BuildCode(tree);
-            //обход дерева для записи в строку
-            ShowCode(tree);
-            //очистка кода от transfe
-            ClearCode();
-            //упорядочивание узлов в массиве по имени узла
-            visited.OrderBy(x => x.Name);
+            for (int i = 0; i < networkData.ThreadCount; i++)
+            {
+                visited.Clear();
+                //добавление кода в узлы
+                BuildCode(networkData.Threads[i].Tree, i);
+                //обход дерева для записи в строку
+                ShowCode(networkData.Threads[i].Tree);
+                //очистка кода от transfer
+                ClearCode();
+                //упорядочивание узлов в массиве по имени узла
+                visited.OrderBy(x => x.Name);
+                networkData.Threads[i].Nodes = visited;
+            }
             return Code;
         }
 
@@ -128,11 +130,11 @@ namespace Translator
         }
 
         //добавление кода в узлы
-        private void BuildCode(GPSSNode tree)
+        private void BuildCode(GPSSNode tree, int num = 0)
         {
             if (tree.Children.Count == 0 && GPSSNode.Last == tree.Name)
             {
-                tree.NodeCode = AddNodeCode(networkData.GetNextNodeDesc, tree.NodeCode, tree.Name);
+                tree.NodeCode = AddNodeCode(networkData.Threads[num].GetNextNodeDesc, tree.NodeCode, tree.Name);
             }
             else
             {
@@ -140,8 +142,8 @@ namespace Translator
                 {
                     if ((tree.Name + 1) == tree.Children[index].Name)
                     {
-                        tree.NodeCode = AddNodeCode(networkData.GetNextNodeDesc, tree.NodeCode, tree.Name);
-                        BuildCode(tree.Children[index]);
+                        tree.NodeCode = AddNodeCode(networkData.Threads[num].GetNextNodeDesc, tree.NodeCode, tree.Name);
+                        BuildCode(tree.Children[index],num);
                     }
                     else
                     {

@@ -6,63 +6,58 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Collections;
-namespace Translator
+namespace GPSSLib
 {
     public class NetworkData
-    {
-
-        private double[][] matrix;
-        int position = 0;
+    {       
         //добавить описание узлов
-        public double[][] Matrix
-        {
-            get { return matrix; }
-        }
-
-        public string[] NodeDesc { get; private set; }
-
-        //получение следующего узла (вывод по порядку)
-        public string GetNextNodeDesc
-        {
-            get
-            {
-                if (position > NodeDesc.Length)
-                {
-                    position = 0;
-                    return NodeDesc[0];
-                }
-                else return NodeDesc[position++];
-            }
-        }
+        public List<NetworkThread> Threads{ get; private set; }
         
+        public int ThreadCount { get; private set; }
+
+        public int NodeCount { get; private set; }
+        
+        //переделеать для нескольких потоков
         public bool IsDataReaded(string path)
         {
             try
             {
-                int index = 1;
-                string[] data = File.ReadAllLines(path);
-                //считывание описания узлов
-                NodeDesc = new string[int.Parse(data[0])];
-                for (int i = 1; i < NodeDesc.Length + 1; i++)
-                {
-                    NodeDesc[i - 1] = data[i];
-                    index++;
-                }
+                int index = 2;
 
-                matrix = new double[int.Parse(data[index])][];
-                //считывание матрицы
-                index++;
-                for (int i = 0; i < matrix.Length; i++)
-                {
-                    matrix[i] = data[index].Split(new char[] { ' ' },
-                                    StringSplitOptions.RemoveEmptyEntries)
-                                    .Select(Convert.ToDouble)
-                                    .ToArray();
-                    index++;
-                }
-                if (matrix.Length != matrix[0].Length)
-                {
+                string[] data = File.ReadAllLines(path);
+
+                if (!data[0].StartsWith("NODE_COUNT"))
                     return false;
+                //считывание количества узлов
+                else NodeCount = int.Parse(data[0].Split(' ')[1]);
+
+                //считывание количества потоков
+                if (!data[1].StartsWith("THREAD_NUM"))
+                    return false;
+                else ThreadCount = int.Parse(data[1].Split(' ')[1]);
+
+                var nodeDesc = new string[NodeCount];
+                var matrix = new double[NodeCount][];
+                Threads = new List<NetworkThread>(ThreadCount);
+                
+                for (int i = 0; i < ThreadCount; i++)
+                {                   
+                    //считывание описания узлов
+                    for (int j = 0; j < NodeCount; j++)
+                    {
+                        nodeDesc[j] = data[index];
+                        index++;
+                    }
+                    //считывание матрицы
+                    for (int j = 0; j < NodeCount; j++)
+                    {
+                        matrix[j] = data[index]
+                            .Split(' ')
+                            .Select(Convert.ToDouble)
+                            .ToArray();
+                        index++;
+                    }
+                    Threads.Add(new NetworkThread(matrix, nodeDesc));
                 }
             }
             catch (Exception)

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Translator.Properties
+namespace GPSSLib.Properties
 {
 
 

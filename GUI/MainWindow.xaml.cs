@@ -16,7 +16,7 @@ using System.Windows.Shapes;
 using System.Windows.Forms;
 using Microsoft.Msagl.Drawing;
 using Microsoft.Msagl.GraphViewerGdi;
-namespace Translator
+namespace GPSSLib
 {
     public partial class MainWindow : Window
     {
@@ -43,8 +43,8 @@ namespace Translator
             }
             else
             {
-                //вывод данных сети
-                this.MatrixTextBox.Text = string.Join("\n", NetData.NodeDesc);               
+                //вывод данных сети //заменить на все параметры
+                this.MatrixTextBox.Text = string.Join("\n", NetData.Threads[0].NodeDesc);               
                 this.BuildTreeButton.IsEnabled = true;
             }
         }
@@ -57,14 +57,13 @@ namespace Translator
                 System.Windows.MessageBox.Show("Матрица не выбрана");
             }
             else
-            {
-                //построение дерева
-                tree = GPSSNode.BuildTree(NetData);
+            {   
                 //добавление кода в узлы
-                builder = new CodeBuilder(tree, NetData);
-                CodeTextBox.Text = builder.MakeCode(tree);
+                builder = new CodeBuilder(NetData);
+                CodeTextBox.Text = builder.MakeCode();
+                ResultTextBox.Text += "Код построен\n";
             }
-            ResultTextBox.Text += "Код построен\n";
+            
         }
 
         private void CopyButton_Click(object sender, RoutedEventArgs e)
@@ -120,23 +119,23 @@ namespace Translator
 
         private void TreeButton_Click(object sender, RoutedEventArgs e)
         {
-            var graph = BuildTree();
+            var graph = BuildTree(NetData.Threads[0].Nodes);
             Visualize(graph, TreeGridView , LayerDirection.TB);
             ResultTextBox.Text += "Дерево показано\n";
         }
 
         private void SchemBuild_Click(object sender, RoutedEventArgs e)
         {
-            var graph = BuildScheme();
+            var graph = BuildScheme(NetData.Threads[0].Nodes);
             Visualize(graph, SchemGridView, LayerDirection.LR);
         }
 
         //построение дерева
         //TODO: сделать рекурсивным
-        private Graph BuildTree()
+        private Graph BuildTree(List<GPSSNode> vertex)
         {
             Graph graph = new Graph("graph");
-            var vertex = builder.Vertex;
+            
             
             vertex = vertex.Distinct().ToList();
             //прямой обход
@@ -177,11 +176,9 @@ namespace Translator
         //TODO: переделать схему построения, вывод вероятностей с 3
         //TODO: сделать рекурсивным
         //построение схемы сети
-        private Graph BuildScheme()
+        private Graph BuildScheme(List<GPSSNode> vertex)
         {
             Graph graph = new Graph("graph");
-            var vertex = builder.Vertex;
-
             
             for (int i = 0; i < vertex.Count; i++)
             {

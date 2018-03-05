@@ -1,4 +1,4 @@
-﻿<Window x:Class="Translator.MainWindow"
+﻿<Window x:Class="GPSSLib.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         MinHeight="350" MinWidth="500" Title="GPSSTranslator" Height="350" Width="500" Icon="Icon1.ico">

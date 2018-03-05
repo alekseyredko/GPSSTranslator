@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Windows;
 
-namespace Translator
+namespace GPSSLib
 {
     //TODO: представить узлы в виде коллекции
     public class GPSSNode
@@ -47,9 +47,8 @@ namespace Translator
             NodeCode = $"\nlabel_{Name} ";
         }
 
-        public static GPSSNode BuildTree(NetworkData m)
+        public static GPSSNode BuildTree(double[][] matrix)
         {
-            var matrix = m.Matrix;
             var node = new GPSSNode(null, 0);
             node.IsVisited = true;
             Last = matrix.Length-1;
