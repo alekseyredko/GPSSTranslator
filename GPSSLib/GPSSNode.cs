@@ -40,21 +40,19 @@ namespace Translator
             get;
             private set;
         }
-
         public GPSSNode(GPSSNode Parent, int Name)
         {
             this.Parent = Parent;
             this.Name = Name;
             NodeCode = $"\nlabel_{Name} ";
         }
-       
+
         public static GPSSNode BuildTree(NetworkData m)
         {
             var matrix = m.Matrix;
             var node = new GPSSNode(null, 0);
             node.IsVisited = true;
             Last = matrix.Length-1;
-
             var visitedNodes = new List<GPSSNode>();
 
             for (int i = 0; i < matrix.Length; i++)
@@ -68,23 +66,20 @@ namespace Translator
                             node.children[k].IsVisited = true;
                             node = node.children[k];
                             break;
-                        }
-                        
+                        }                        
                     }
                 }
-
-                for (int j = 0; j < matrix[i].Length; j++)
+                for (int j = 0; j < matrix.Length; j++)
                 {
                     if (visitedNodes.Exists(x => x.Name == node.Name))
                     {
                         break;
                     }
-                    if (matrix[i][j] != 0 &&  matrix[i][j]<1)
+                    if (matrix[i][j] != 0 &&  matrix[i][j] < 1)
                     {                        
                         node.children.Add(new GPSSNode(node, j));
                         node.transfers.Add(matrix[i][j]);
                     }
-
                     if(matrix[i][j] == 1)
                     {
                         node.children.Add(new GPSSNode(node, j));                        
@@ -92,7 +87,6 @@ namespace Translator
                         break;
                     }                     
                 }
-                
                 if (node.children.Count == 0)
                 {
                     node.IsVisited = true;
@@ -100,10 +94,8 @@ namespace Translator
                     {
                         node.IsVisited = true;
                         visitedNodes.Add(node);
-
                         node = node.Parent;
                         i--;
-                        
                         if (node.Parent == null)
                         {
                             return node;
@@ -120,7 +112,6 @@ namespace Translator
             {
                 return true;
             }            
-
             for (int i = 0; i < node.children.Count; i++)
             {
                 if(!node.children[i].IsVisited)

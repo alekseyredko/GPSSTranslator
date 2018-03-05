@@ -96,10 +96,12 @@ namespace Translator
             ShowCode(tree);
             //очистка кода от transfe
             ClearCode();
+            //упорядочивание узлов в массиве по имени узла
+            visited.OrderBy(x => x.Name);
             return Code;
         }
 
-        //обход дерева для записи в строку
+        //обход дерева для записи в строку и запись дерева в массив
         private void ShowCode(GPSSNode tree)
         {
             if (visited.Exists((x => x.Name == tree.Name)))
@@ -109,13 +111,13 @@ namespace Translator
             if (tree.Children.Count == 0 && GPSSNode.Last == tree.Name)
             {
                 visited.Add(tree);
-               Code += tree.NodeCode;
+                Code += tree.NodeCode;
             }
             else
             {
+                visited.Add(tree);
                 for (int i = 0; i < tree.Children.Count; i++)
-                {
-                    visited.Add(tree);
+                { 
                     if (!visited.Exists(x => x.Name == tree.Children[i].Name))
                     {
                         Code += tree.NodeCode;
@@ -125,11 +127,12 @@ namespace Translator
             }
         }
 
+        //добавление кода в узлы
         private void BuildCode(GPSSNode tree)
         {
             if (tree.Children.Count == 0 && GPSSNode.Last == tree.Name)
             {
-                tree.NodeCode += CodeBuilder.AddTerminateteBlock(1.0, 1);
+                tree.NodeCode = AddNodeCode(networkData.GetNextNodeDesc, tree.NodeCode, tree.Name);
             }
             else
             {
