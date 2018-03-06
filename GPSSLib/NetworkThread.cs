@@ -17,6 +17,8 @@ namespace GPSSLib
 
         public string[] NodeDesc { get; private set; }
 
+        public int ThreadNum { get; private set; }
+
         //получение следующего узла (вывод по порядку)
         public string GetNextNodeDesc
         {
@@ -31,11 +33,12 @@ namespace GPSSLib
             }
         }
 
-        public NetworkThread(double[][]Matrix, string[] desc)
+        public NetworkThread(double[][]Matrix, string[] desc, int threadNum)
         {
+            this.ThreadNum = threadNum;
             this.Matrix = Matrix;
             this.NodeDesc = desc;
-            Tree = GPSSNode.BuildTree(this.Matrix);
+            Tree = GPSSNode.BuildTree(this.Matrix, ThreadNum);
         }
 
         public NetworkThread() { }

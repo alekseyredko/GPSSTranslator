@@ -20,8 +20,7 @@ namespace GPSSLib
 {
     public partial class MainWindow : Window
     {
-        private NetworkData NetData;
-        private GPSSNode tree;
+        private NetworkData NetData;        
         private CodeBuilder builder;
         public MainWindow()
         {
@@ -43,8 +42,13 @@ namespace GPSSLib
             }
             else
             {
+                MatrixTextBox.Text = "";
                 //вывод данных сети //заменить на все параметры
-                this.MatrixTextBox.Text = string.Join("\n", NetData.Threads[0].NodeDesc);               
+                foreach (var item in NetData.Threads)
+                {
+                    this.MatrixTextBox.Text += string.Join("\n", item.NodeDesc);
+                    this.MatrixTextBox.Text += '\n';
+                }
                 this.BuildTreeButton.IsEnabled = true;
             }
         }
@@ -62,6 +66,14 @@ namespace GPSSLib
                 builder = new CodeBuilder(NetData);
                 CodeTextBox.Text = builder.MakeCode();
                 ResultTextBox.Text += "Код построен\n";
+
+                for (int i = 0; i < NetData.Threads.Count; i++)
+                {
+                    TreeVars.Items.Add($"Поток {i + 1}");
+                    SchemeVars.Items.Add($"Поток {i + 1}");
+                }
+                TreeVars.SelectedIndex = 0;
+                SchemeVars.SelectedIndex = 0;
             }
             
         }
@@ -96,7 +108,6 @@ namespace GPSSLib
             viewer.Graph = graph;
             //associate the viewer with the form            
             viewer.Dock = DockStyle.Fill;
-           
             host.Child = viewer;
             grid.Children.Add(host);
         }
@@ -119,15 +130,19 @@ namespace GPSSLib
 
         private void TreeButton_Click(object sender, RoutedEventArgs e)
         {
-            var graph = BuildTree(NetData.Threads[0].Nodes);
+            //передалать для переключения между потоками
+            
+            var graph = BuildTree(NetData.Threads[TreeVars.SelectedIndex].Nodes);
             Visualize(graph, TreeGridView , LayerDirection.TB);
             ResultTextBox.Text += "Дерево показано\n";
         }
 
         private void SchemBuild_Click(object sender, RoutedEventArgs e)
         {
-            var graph = BuildScheme(NetData.Threads[0].Nodes);
+            //передалать для переключения между потоками
+            var graph = BuildScheme(NetData.Threads[SchemeVars.SelectedIndex].Nodes);
             Visualize(graph, SchemGridView, LayerDirection.LR);
+            ResultTextBox.Text += "Схема построена\n";
         }
 
         //построение дерева

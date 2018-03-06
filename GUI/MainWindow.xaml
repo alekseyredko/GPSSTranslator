@@ -16,7 +16,6 @@
                   HorizontalAlignment="Right" Width="115" Height="20" VerticalAlignment="Top"/>
                     <Button Click="CopyMatrixButton_Click" x:Name="CopyMatrixButton" Content="Копировать" Margin="0,189,10,0"
                   VerticalAlignment="Top" HorizontalAlignment="Right" Width="115"/>
-                    <Button x:Name="TreeButton" Content="Построить Дерево" Margin="0,60,10,0" Click="TreeButton_Click" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" Width="115"/>
                     <TextBox x:Name="ResultTextBox" Height="68" TextWrapping="Wrap" AcceptsReturn="true" Margin="0,99,10,0" HorizontalAlignment="Right" Width="115" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
@@ -30,28 +29,41 @@
                   Margin="0,214,10,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Дерево">
-                <Grid Name="TreeGridView">
+            <TabItem Header="Дерево" Height="22" VerticalAlignment="Top">
+                <Grid Name="TreeHost">
+                    <Grid Name="TreeToolHostGrid" Margin="0,0,340,0">
+                        <ComboBox Name="TreeVars" HorizontalAlignment="Left" Margin="10,58,0,0" VerticalAlignment="Top" Width="107"/>
+                        <Button Content="Построить" Click="TreeButton_Click" Margin="10,100,0,0" HorizontalAlignment="Left" Width="107" Height="22" VerticalAlignment="Top"/>
+                    </Grid>
+                    <Grid Name="TreeGridView" Margin="131,0,0,0">
+                        <Grid.Background>
+                            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                                <GradientStop Color="#FFDA07F0" Offset="1"/>
+                                <GradientStop Color="#FFF3FF00"/>
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                    </Grid>
                 </Grid>
             </TabItem>
             <TabItem Header="Схема">
-                <Grid Name="SchemGridView">
+                <Grid Name="SchemeHost">
+                    <Grid Name="SchemeToolHostGrid" Margin="0,0,340,0">
+                        <ComboBox Name="SchemeVars" HorizontalAlignment="Left" Margin="10,58,0,0" VerticalAlignment="Top" Width="107"/>
+                        <Button Content="Построить" Click="SchemBuild_Click" Margin="10,100,0,0" HorizontalAlignment="Left" Width="107" Height="22" VerticalAlignment="Top"/>
+                    </Grid>
+                    <Grid Name="SchemGridView" Margin="131,0,0,0">
+                    </Grid>
                 </Grid>
             </TabItem>
+
         </TabControl>
-        <Menu Height="20" VerticalAlignment="Top">
+        <Menu Height="20" VerticalAlignment="Top" Name="MainMenu">
             <MenuItem Header="Матрица">
                 <MenuItem Click="OpenFileButton_Click" Name="MatrixOpenItem" Header="Открыть"/>
             </MenuItem>
             <MenuItem Header="Код">
                 <MenuItem Click="BuildTreeButton_Click" Name="BuildCodeItem" Header="Построить"/>
                 <MenuItem Click="CodeSaveItem_Click" Name="CodeSaveItem" Header="Сохранить"/>
-            </MenuItem>
-            <MenuItem Header="Дерево">
-                <MenuItem Click="TreeButton_Click" Name="VisualTreeBuild" Header="Построить"/>
-            </MenuItem>
-            <MenuItem Header="Схема">
-                <MenuItem  Name="SchemBuild" Header="Построить" Click="SchemBuild_Click"/>
             </MenuItem>
         </Menu>
     </Grid>

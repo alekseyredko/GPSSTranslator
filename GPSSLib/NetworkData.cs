@@ -41,7 +41,9 @@ namespace GPSSLib
                 Threads = new List<NetworkThread>(ThreadCount);
                 
                 for (int i = 0; i < ThreadCount; i++)
-                {                   
+                {
+                    nodeDesc = new string[NodeCount];
+                    matrix = new double[NodeCount][];
                     //считывание описания узлов
                     for (int j = 0; j < NodeCount; j++)
                     {
@@ -57,7 +59,7 @@ namespace GPSSLib
                             .ToArray();
                         index++;
                     }
-                    Threads.Add(new NetworkThread(matrix, nodeDesc));
+                    Threads.Add(new NetworkThread(matrix, nodeDesc, i+1));
                 }
             }
             catch (Exception)

@@ -40,16 +40,16 @@ namespace GPSSLib
             get;
             private set;
         }
-        public GPSSNode(GPSSNode Parent, int Name)
+        public GPSSNode(GPSSNode Parent, int Name, int threadNum = 0)
         {
             this.Parent = Parent;
             this.Name = Name;
-            NodeCode = $"\nlabel_{Name} ";
+            NodeCode = $"\nlabel_{Name}_{threadNum} ";
         }
 
-        public static GPSSNode BuildTree(double[][] matrix)
+        public static GPSSNode BuildTree(double[][] matrix, int threadNum)
         {
-            var node = new GPSSNode(null, 0);
+            var node = new GPSSNode(null, 0, threadNum);
             node.IsVisited = true;
             Last = matrix.Length-1;
             var visitedNodes = new List<GPSSNode>();
@@ -76,12 +76,12 @@ namespace GPSSLib
                     }
                     if (matrix[i][j] != 0 &&  matrix[i][j] < 1)
                     {                        
-                        node.children.Add(new GPSSNode(node, j));
+                        node.children.Add(new GPSSNode(node, j, threadNum));
                         node.transfers.Add(matrix[i][j]);
                     }
                     if(matrix[i][j] == 1)
                     {
-                        node.children.Add(new GPSSNode(node, j));                        
+                        node.children.Add(new GPSSNode(node, j, threadNum));                        
                         node.transfers.Add(1);
                         break;
                     }                     

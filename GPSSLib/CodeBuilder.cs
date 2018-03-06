@@ -29,9 +29,9 @@ namespace GPSSLib
             return string.Format(string.Format("TERMINATE {0}\n", option));
         }
 
-        public static string AddTransferCode(GPSSNode node, double option, GPSSNode childNode)
+        public static string AddTransferCode(GPSSNode node, double option, GPSSNode childNode, int threadNum)
         {
-            return string.Format("TRANSFER {0:N2},, label_{1}\n", option, childNode.Name)
+            return string.Format("TRANSFER {0:N2},, label_{1}_{2}\n", option, childNode.Name, threadNum+1)
                 .Replace(" 0,", " 0.");
         }
         
@@ -89,6 +89,7 @@ namespace GPSSLib
             Code = "";
             for (int i = 0; i < networkData.ThreadCount; i++)
             {
+                visited = new List<GPSSNode>();
                 visited.Clear();
                 //добавление кода в узлы
                 BuildCode(networkData.Threads[i].Tree, i);
@@ -151,22 +152,29 @@ namespace GPSSLib
                         {
                             tree.Transfers[index] = tree.Transfers[index] / (1 - tree.Transfers[0]);
                         }
-                        tree.NodeCode += CodeBuilder.AddTransferCode(tree, tree.Transfers[index], tree.Children[index]);
+                        tree.NodeCode += CodeBuilder.AddTransferCode(tree, tree.Transfers[index], tree.Children[index], num);
                     }
                 }
             }
         }
 
 
+        //переделать очистку кода
         private void ClearCode()
         {
             for (int i = 0; i < visited.Count; i++)
             {
-                if(!Regex.IsMatch(Code, $@"TRANSFER 0.\d*,, label_{i}\n"))
+                if (!Regex.IsMatch(Code, $@"TRANSFER 0.\d*,, label_{i}_\d\n"))
                 {
-                    Code = Regex.Replace(Code, $"label_{i} ", "");
+                    Code = Regex.Replace(Code, $@"label_{i}_\d ", "");
                 }
+
             }
+            if (Regex.IsMatch(Code, $"^\n$"))
+            {
+                Code = Regex.Replace(Code, $"^\n$", "");
+            }
+            Code = Code.Trim('\n');
         }        
     }
 }
