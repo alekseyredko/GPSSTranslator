@@ -1,8 +1,0 @@
-
-block_0
-
-label_1 block_1
-TRANSFER 0,1,, label_1
-
-block_2
-TERMINATE 1

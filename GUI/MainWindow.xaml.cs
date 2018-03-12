@@ -38,7 +38,7 @@ namespace GPSSLib
             if (!NetData.IsDataReaded(openFileDialog.FileName))
             {
                 System.Windows.MessageBox.Show("Ошибка. Неверная матрица", "Ошибка");
-                BuildTreeButton.IsEnabled = false;
+                BuildTreeButton.IsEnabled = false;                
             }
             else
             {
@@ -66,6 +66,9 @@ namespace GPSSLib
                 builder = new CodeBuilder(NetData);
                 CodeTextBox.Text = builder.MakeCode();
                 ResultTextBox.Text += "Код построен\n";
+
+                TreeVars.Items.Clear();
+                SchemeVars.Items.Clear();
 
                 for (int i = 0; i < NetData.Threads.Count; i++)
                 {
@@ -116,7 +119,7 @@ namespace GPSSLib
         private void CodeSaveItem_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*";
+            saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*|GPS Model (*.gps)|*.gps";
         
             if (saveFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
             {

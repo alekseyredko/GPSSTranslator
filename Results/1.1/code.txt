@@ -1,7 +1,0 @@
-
-block_0
-
-block_1
-
-block_2
-TERMINATE 1

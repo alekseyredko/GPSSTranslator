@@ -17,14 +17,9 @@ namespace GPSSLib
 
         public string Code { get; private set; } = "";
                 
-        //public static string AddTerminateteBlock(double option, int name)
-        //{
-        //    return string.Format(string.Format("TERMINATE {0}\n", option));
-        //}
-
         private static string AddTransferCode(GPSSNode node, double option, GPSSNode childNode, int threadNum)
         {
-            return string.Format("TRANSFER {0:N2},, label_{1}_{2}", option, childNode.Name, threadNum+1)
+            return string.Format("TRANSFER {0:N2},,label_{1}_{2}\n", option, childNode.Name, threadNum+1)
                 .Replace(" 0,", " 0.");
         }
         
@@ -44,19 +39,19 @@ namespace GPSSLib
                     break;
                 case "FACILITY_ONECHANNEL":
                     res = AddQueue(node.Name, threadNum)+
-                        $"SEIZE b_{node.Name}\n" +
+                        $"SEIZE b{node.Name}\n" +
                         AddDepart1(node.Name, threadNum)+
                         $"ADVANCE ({param[1]}({string.Join(",", param.Skip(2))}))\n" +
-                        $"RELEASE b_{node.Name}\n";
+                        $"RELEASE b{node.Name}\n"+
                         AddDepart2(node.Name, threadNum);
                     break;
                 case "FACILITY_MULTICHANNEL":
                     res =  AddQueue(node.Name, threadNum)+
                         $"b_{node.Name} STORAGE {param[1]} \n" +
-                        $"ENTER b_{node.Name}\n" +
+                        $"ENTER b{node.Name}\n" +
                         AddDepart1(node.Name, threadNum) +
                         $"ADVANCE ({param[2]}({string.Join(",", param.Skip(3))}))\n" +
-                        $"LEAVE b_{node.Name}\n"+
+                        $"LEAVE b{node.Name}\n"+
                         AddDepart2(node.Name, threadNum);
                     break;
             }
@@ -64,12 +59,7 @@ namespace GPSSLib
             node.NodeCode = node.NodeCode.Substring(0, node.NodeCode.IndexOf(' ') + 1)
                 + res + node.NodeCode.Substring(node.NodeCode.IndexOf(' ') + 1);
         }
-
-        //public static string AddDistribution(string dist, params double[] values)
-        //{
-        //    return string.Format("{0}({1}}", dist, string.Join(",", values));
-        //}
-
+     
         //переписать для добавления всех переменных
         private static string AddQueue(int name, int threadNum)
         {
@@ -106,11 +96,12 @@ namespace GPSSLib
                 //обход дерева для записи в строку
                 ShowCode(networkData.Threads[i].Tree);
                 //очистка кода от transfer
-                ClearCode();
+                
                 //упорядочивание узлов в массиве по имени узла
                 visited.OrderBy(x => x.Name);
                 networkData.Threads[i].Nodes = visited;
             }
+            ClearCode();
             return Code;
         }
 
@@ -170,14 +161,33 @@ namespace GPSSLib
         }
         
         private void ClearCode()
-        {
+        {  
             for (int i = 0; i < visited.Count; i++)
             {
-                if (!Regex.IsMatch(Code, $@"TRANSFER 0.\d*,, label_{i}_\d\n"))
+                if (!Regex.IsMatch(Code, $@"TRANSFER 0.\d*,,label_{i}_\d\n"))
                 {
-                    Code = Regex.Replace(Code, $@"\nlabel_{i}_\d ", "");
+                    Code = Regex.Replace(Code, $@"label_{i}_\d ", "");
                 }
-            }           
-        }        
+            }
+             
+            //форматирование кода
+            var lines = Code.Split('\n');
+            Code = "";
+            for (int i = 0; i < lines.Length - 2; i++)
+            {
+                var line = lines[i].Split(' ');
+                if (lines[i].Count(x => x == ' ') == 1)
+                {
+                    Code += string.Format("{0,-12}{1,-12}{2,-12}", " ",
+                        lines[i].Split(' ')[0], lines[i].Split(' ')[1]) + '\n';
+                }
+                else if (lines[i]!="")
+                {
+                    Code += string.Format("{0,-12}{1,-12}{2}",
+                        lines[i].Split(' ')[0], lines[i].Split(' ')[1],
+                        lines[i].Split(' ')[2]) + '\n';
+                }
+            }
+        }   
     }
 }

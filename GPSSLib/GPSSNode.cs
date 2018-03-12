@@ -35,7 +35,7 @@ namespace GPSSLib
         {
             this.Parent = Parent;
             this.Name = Name;
-            NodeCode = $"\nlabel_{Name}_{threadNum} ";
+            NodeCode = $"label_{Name}_{threadNum} ";
         }
 
         public static GPSSNode BuildTree(double[][] matrix, int threadNum)
