@@ -53,10 +53,8 @@ namespace GPSSLib
                     //считывание матрицы
                     for (int j = 0; j < NodeCount; j++)
                     {
-                        matrix[j] = data[index]
-                            .Split(' ')
-                            .Select(Convert.ToDouble)
-                            .ToArray();
+                        matrix[j] = data[index].Split(' ')
+                            .Select(Convert.ToDouble).ToArray();
                         index++;
                     }
                     Threads.Add(new NetworkThread(matrix, nodeDesc, i+1));

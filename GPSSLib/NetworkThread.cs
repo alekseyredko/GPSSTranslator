@@ -40,7 +40,5 @@ namespace GPSSLib
             this.NodeDesc = desc;
             Tree = GPSSNode.BuildTree(this.Matrix, ThreadNum);
         }
-
-        public NetworkThread() { }
     }
 }

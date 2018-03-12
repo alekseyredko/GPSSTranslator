@@ -6,7 +6,7 @@ namespace GPSSLib
 {
     public class CodeBuilder
     {
-        private  List<GPSSNode> visited = new List<GPSSNode>();
+        private List<GPSSNode> visited = new List<GPSSNode>();
 
         NetworkData networkData;
 
@@ -15,72 +15,82 @@ namespace GPSSLib
             networkData = data;
         }
 
-
-        //TODO: реализовать коллекцию
-        //public List<GPSSNode> Vertex
-        //{
-        //    get { return visited; }
-        //}
-
         public string Code { get; private set; } = "";
                 
-        public static string AddTerminateteBlock(double option, int name)
-        {
-            return string.Format(string.Format("TERMINATE {0}\n", option));
-        }
+        //public static string AddTerminateteBlock(double option, int name)
+        //{
+        //    return string.Format(string.Format("TERMINATE {0}\n", option));
+        //}
 
-        public static string AddTransferCode(GPSSNode node, double option, GPSSNode childNode, int threadNum)
+        private static string AddTransferCode(GPSSNode node, double option, GPSSNode childNode, int threadNum)
         {
-            return string.Format("TRANSFER {0:N2},, label_{1}_{2}\n", option, childNode.Name, threadNum+1)
+            return string.Format("TRANSFER {0:N2},, label_{1}_{2}", option, childNode.Name, threadNum+1)
                 .Replace(" 0,", " 0.");
         }
         
-        /// <summary>
-        /// Метод для добавления кода в узел
-        /// </summary>
-        /// <param name="nodeType">Параметры узла</param>
-        /// <param name="nodeName">Имя узла</param>
-        /// <returns></returns>
-        public static string AddNodeCode(string nodeType, string nodeCode, int nodeName)
+        private static void AddNodeCode(string nodeType, GPSSNode node, int threadNum = 0)
         {
             string[] param = nodeType.Split(' ');
             string res = "";
             switch (param[0])
             {
                 case "GENERATE":
-                    res += string.Format("{0} {1}({2})\n", 
-                        param[0], param[1], string.Join(",", param.Skip(2)));
+                    res = $"{param[0]} {param[1]}({string.Join(",", param.Skip(2))})\n" +
+                        $"queue net\nqueue net_{threadNum+1}\n";
                     break;
                 case "TERMINATE":
-                    res += string.Join(" ", nodeType);
+                    res = $"depart net\ndepart net_{threadNum+1}\n"+
+                        $"{nodeType}\n\n";
                     break;
                 case "FACILITY_ONECHANNEL":
-                    res += string.Format(string.Format("SEIZE b_{0}\n", nodeName) +
-                        string.Format("ADVANCE ({0}({1}))\n", param[1], string.Join(",", param.Skip(2))) + 
-                        string.Format("RELEASE b_{0}\n", nodeName));
+                    res = AddQueue(node.Name, threadNum)+
+                        $"SEIZE b_{node.Name}\n" +
+                        AddDepart1(node.Name, threadNum)+
+                        $"ADVANCE ({param[1]}({string.Join(",", param.Skip(2))}))\n" +
+                        $"RELEASE b_{node.Name}\n";
+                        AddDepart2(node.Name, threadNum);
                     break;
-                    //вынести в отдельные методы
                 case "FACILITY_MULTICHANNEL":
-                    res += string.Format(string.Format("b_{0} STORAGE {1} \n", nodeName, param[1]) +
-                        string.Format("ENTER b_{0}\n", nodeName) +
-                        string.Format("ADVANCE ({0}({1}))\n", param[2], string.Join(",", param.Skip(3))) +
-                        string.Format("LEAVE b_{0}\n", nodeName));
+                    res =  AddQueue(node.Name, threadNum)+
+                        $"b_{node.Name} STORAGE {param[1]} \n" +
+                        $"ENTER b_{node.Name}\n" +
+                        AddDepart1(node.Name, threadNum) +
+                        $"ADVANCE ({param[2]}({string.Join(",", param.Skip(3))}))\n" +
+                        $"LEAVE b_{node.Name}\n"+
+                        AddDepart2(node.Name, threadNum);
                     break;
             }
-            return nodeCode.Substring(0, nodeCode.IndexOf(' ')+1)
-                + res + nodeCode.Substring(nodeCode.IndexOf(' ')+1);
+            //ИЗМЕНИТЬ            
+            node.NodeCode = node.NodeCode.Substring(0, node.NodeCode.IndexOf(' ') + 1)
+                + res + node.NodeCode.Substring(node.NodeCode.IndexOf(' ') + 1);
         }
 
-        public static string AddDistribution(string dist, params double[] values)
-        {
-            return string.Format("{0}({1}}", dist, string.Join(",", values));
-        }
+        //public static string AddDistribution(string dist, params double[] values)
+        //{
+        //    return string.Format("{0}({1}}", dist, string.Join(",", values));
+        //}
 
         //переписать для добавления всех переменных
-        public static string AddQueueCode(string block, params double[] options)
+        private static string AddQueue(int name, int threadNum)
         {
-            return string.Format(string.Format("QUEUE {0}\n", block) + 
-                   string.Format("DEPART {0}\n", block));
+            return $"queue b{name}_queue\n"+
+                   $"queue b{name}_{threadNum+1}_queue\n"+
+                   $"queue b{name}\n" +
+                   $"queue b{name}_{threadNum+1}\n";
+        }
+
+        //переименовать методы
+        private static string AddDepart1(int name, int threadNum)
+        {
+            return $"depart b{name}_queue\n"+
+                   $"depart b{name}_{threadNum+1}_queue\n";
+        }
+
+        //переименовать методы
+        private static string AddDepart2(int name, int threadNum)
+        {
+            return $"depart b{name}\n" +
+                   $"depart b{name}_{threadNum+1}\n";
         }
 
         //метод для построения кода 
@@ -135,7 +145,7 @@ namespace GPSSLib
         {
             if (tree.Children.Count == 0 && GPSSNode.Last == tree.Name)
             {
-                tree.NodeCode = AddNodeCode(networkData.Threads[num].GetNextNodeDesc, tree.NodeCode, tree.Name);
+                AddNodeCode(networkData.Threads[num].GetNextNodeDesc, tree, num);
             }
             else
             {
@@ -143,7 +153,7 @@ namespace GPSSLib
                 {
                     if ((tree.Name + 1) == tree.Children[index].Name)
                     {
-                        tree.NodeCode = AddNodeCode(networkData.Threads[num].GetNextNodeDesc, tree.NodeCode, tree.Name);
+                        AddNodeCode(networkData.Threads[num].GetNextNodeDesc, tree, num);
                         BuildCode(tree.Children[index],num);
                     }
                     else
@@ -152,29 +162,22 @@ namespace GPSSLib
                         {
                             tree.Transfers[index] = tree.Transfers[index] / (1 - tree.Transfers[0]);
                         }
+                        //сократить
                         tree.NodeCode += CodeBuilder.AddTransferCode(tree, tree.Transfers[index], tree.Children[index], num);
                     }
                 }
             }
         }
-
-
-        //переделать очистку кода
+        
         private void ClearCode()
         {
             for (int i = 0; i < visited.Count; i++)
             {
                 if (!Regex.IsMatch(Code, $@"TRANSFER 0.\d*,, label_{i}_\d\n"))
                 {
-                    Code = Regex.Replace(Code, $@"label_{i}_\d ", "");
+                    Code = Regex.Replace(Code, $@"\nlabel_{i}_\d ", "");
                 }
-
-            }
-            if (Regex.IsMatch(Code, $"^\n$"))
-            {
-                Code = Regex.Replace(Code, $"^\n$", "");
-            }
-            Code = Code.Trim('\n');
+            }           
         }        
     }
 }

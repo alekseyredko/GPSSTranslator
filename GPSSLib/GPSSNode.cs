@@ -12,10 +12,7 @@ namespace GPSSLib
         bool IsVisited = false;
 
         public GPSSNode Parent
-        {
-            get;
-            private set;
-        }
+        { get; private set;}
 
         public List<GPSSNode> Children
         {
@@ -30,16 +27,10 @@ namespace GPSSLib
         public string NodeCode { get; set; } = "";
 
         public int Name
-        {
-            get;
-            private set;
-        }
+        { get; private set; }
 
         public static int Last
-        {
-            get;
-            private set;
-        }
+        { get; private set; }
         public GPSSNode(GPSSNode Parent, int Name, int threadNum = 0)
         {
             this.Parent = Parent;
