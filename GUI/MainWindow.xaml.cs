@@ -42,6 +42,8 @@ namespace GPSSLib
             }
             else
             {
+                //расширение матрицы               
+
                 MatrixTextBox.Text = "";
                 //вывод данных сети //заменить на все параметры
                 foreach (var item in NetData.Threads)

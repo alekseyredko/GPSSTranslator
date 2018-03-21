@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
-
+using System.Linq;
 namespace GPSSLib
 {
     //TODO: представить узлы в виде коллекции
@@ -37,7 +37,7 @@ namespace GPSSLib
             this.Name = Name;
             NodeCode = $"label_{Name}_{threadNum} ";
         }
-
+       
         public static GPSSNode BuildTree(double[][] matrix, int threadNum)
         {
             var node = new GPSSNode(null, 0, threadNum);

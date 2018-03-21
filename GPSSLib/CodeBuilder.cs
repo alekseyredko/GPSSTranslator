@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Windows;
 namespace GPSSLib
 {
     public class CodeBuilder
@@ -17,12 +18,17 @@ namespace GPSSLib
 
         public string Code { get; private set; } = "";
                 
-        private static string AddTransferCode(GPSSNode node, double option, GPSSNode childNode, int threadNum)
+        private static void AddTransferCode(GPSSNode node, double option, int childNode, int threadNum)
         {
-            return string.Format("TRANSFER {0:N2},,label_{1}_{2}\n", option, childNode.Name, threadNum+1)
+            node.NodeCode = string.Format("TRANSFER {0:N2},,label_{1}_{2}\n", option, childNode, threadNum+1)
                 .Replace(" 0,", " 0.");
         }
-        
+        private static string AddTransferCode(GPSSNode node, double option, GPSSNode childNode, int threadNum)
+        {
+            return string.Format("TRANSFER {0:N2},,label_{1}_{2}\n", option, childNode.Name, threadNum + 1)
+                .Replace(" 0,", " 0.");
+        }
+
         private static void AddNodeCode(string nodeType, GPSSNode node, int threadNum = 0)
         {
             string[] param = nodeType.Split(' ');
@@ -92,17 +98,67 @@ namespace GPSSLib
                 visited = new List<GPSSNode>();
                 visited.Clear();
                 //добавление кода в узлы
-                BuildCode(networkData.Threads[i].Tree, i);
-                //обход дерева для записи в строку
-                ShowCode(networkData.Threads[i].Tree);
-                //очистка кода от transfer
-                
-                //упорядочивание узлов в массиве по имени узла
-                visited.OrderBy(x => x.Name);
-                networkData.Threads[i].Nodes = visited;
+                if(!networkData.Threads[i].IsMatrixExpanded)
+                {
+                    BuildCode(networkData.Threads[i].Tree, i);
+                    //обход дерева для записи в строку
+                    ShowCode(networkData.Threads[i].Tree);                   
+                    //упорядочивание узлов в массиве по имени узла
+                    visited.OrderBy(x => x.Name);
+                    networkData.Threads[i].Nodes = visited;                   
+                }
+
+                else
+                {                   
+                    RecursiveBuild(networkData.Threads[i], visited, i);
+                    networkData.Threads[i].Nodes = visited;                    
+                }
+                Code = string.Join("\n", visited.Select(x => x.NodeCode));
+                ClearCode(networkData.Threads[i].IsMatrixExpanded);
             }
-            ClearCode();
+            
             return Code;
+        }
+
+
+        private void RecursiveBuild(NetworkThread thread, List<GPSSNode> visited,int num = 0, int m = 0, int n = 0)
+        {
+            for (int i = m; i < thread.Matrix.Length; i++)
+            {
+                for (int j = n; j < thread.Matrix.Length; j++)
+                {
+                    if(thread.Matrix[i][j]==1)
+                    {
+                        if (visited.Any(x => x.Name == i))
+                            return;
+
+                        var node = new GPSSNode(null, i, num+1);
+                        AddNodeCode(thread.GetNextNodeDesc, node, num);
+                        visited.Add(node);
+                        RecursiveBuild(thread, visited,num, j, 0);
+                    }
+                    else if(thread.Matrix[i].Any(x=>x != 0 && x < 1))
+                    {
+                        if (visited.Any(x => x.Name == i))
+                            return;
+
+                        for (int k = 0; k < thread.Matrix[i].Length; k++)
+                        {                           
+                            if (thread.Matrix[i][k] !=0)
+                            {
+                                //пересчитать вероятности, где больше двух
+                                if (thread.Matrix[i].Count(x => x != 0) > 2)
+                                    thread.Matrix[i][k] /= (1 - thread.Matrix[i].First(x => x != 0));
+                                
+                                var node = new GPSSNode(null, i, num+1);
+                                visited.Add(node);
+                                AddTransferCode(node, thread.Matrix[i][k], k, num);                               
+                            }
+                        }
+                        return;
+                    }                    
+                }
+            }
         }
 
         //обход дерева для записи в строку и запись дерева в массив
@@ -153,14 +209,14 @@ namespace GPSSLib
                         {
                             tree.Transfers[index] = tree.Transfers[index] / (1 - tree.Transfers[0]);
                         }
-                        //сократить
-                        tree.NodeCode += CodeBuilder.AddTransferCode(tree, tree.Transfers[index], tree.Children[index], num);
+                        //изменено добавление transfer
+                        tree.NodeCode+=CodeBuilder.AddTransferCode(tree, tree.Transfers[index], tree.Children[index], num);
                     }
                 }
             }
         }
-        
-        private void ClearCode()
+
+        private void ClearCode(bool IsExp)
         {  
             for (int i = 0; i < visited.Count; i++)
             {
@@ -169,11 +225,32 @@ namespace GPSSLib
                     Code = Regex.Replace(Code, $@"label_{i}_\d ", "");
                 }
             }
-             
+            
             //форматирование кода
-            var lines = Code.Split('\n');
+            var lines = Code.Split('\n').ToList();
+
+            if (IsExp)
+            {
+                for (int i = 0; i < lines.Count - 2; i++)
+                {
+                    if (lines[i].StartsWith("TRANSFER"))
+                    {
+                        var line = lines[i].Split(',').Last();
+                        for (int j = 1; j < 20; j++)
+                        {
+                            if (lines[i + j].StartsWith(line))
+                            {
+                                lines.RemoveAt(i);
+                                i--;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             Code = "";
-            for (int i = 0; i < lines.Length - 2; i++)
+            for (int i = 0; i < lines.Count - 2; i++)
             {
                 var line = lines[i].Split(' ');
                 if (lines[i].Count(x => x == ' ') == 1)
@@ -184,8 +261,7 @@ namespace GPSSLib
                 else if (lines[i]!="")
                 {
                     Code += string.Format("{0,-12}{1,-12}{2}",
-                        lines[i].Split(' ')[0], lines[i].Split(' ')[1],
-                        lines[i].Split(' ')[2]) + '\n';
+                        lines[i].Split(' ')[0], lines[i].Split(' ')[1], lines[i].Split(' ')[2]) + '\n';
                 }
             }
         }   

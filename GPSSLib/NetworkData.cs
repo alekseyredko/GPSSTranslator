@@ -57,7 +57,8 @@ namespace GPSSLib
                             .Select(Convert.ToDouble).ToArray();
                         index++;
                     }
-                    Threads.Add(new NetworkThread(matrix, nodeDesc, i+1));
+                    bool flag = matrix.Last().Last() == 1;
+                    Threads.Add(new NetworkThread(matrix, nodeDesc, i + 1, flag));
                 }
             }
             catch (Exception)
@@ -65,8 +66,7 @@ namespace GPSSLib
                 MessageBox.Show("Исходные данные неверны");
                 return false;
             }
-
             return true;
-        }
+        }       
     }
 }
