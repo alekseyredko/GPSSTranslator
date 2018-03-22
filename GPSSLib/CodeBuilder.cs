@@ -121,7 +121,7 @@ namespace GPSSLib
         }
 
 
-        private void RecursiveBuild(NetworkThread thread, List<GPSSNode> visited,int num = 0, int m = 0, int n = 0)
+        private void RecursiveBuild(NetworkThread thread, List<GPSSNode> visited, int num = 0, int m = 0, int n = 0)
         {
             for (int i = m; i < thread.Matrix.Length; i++)
             {
@@ -139,6 +139,7 @@ namespace GPSSLib
                     }
                     else if(thread.Matrix[i].Any(x=>x != 0 && x < 1))
                     {
+                        double firstTransfer = thread.Matrix[i].First(x => x != 0);
                         if (visited.Any(x => x.Name == i))
                             return;
 
@@ -146,9 +147,9 @@ namespace GPSSLib
                         {                           
                             if (thread.Matrix[i][k] !=0)
                             {
-                                //пересчитать вероятности, где больше двух
+                                //пересчитать вероятности, где больше двух переходов
                                 if (thread.Matrix[i].Count(x => x != 0) > 2)
-                                    thread.Matrix[i][k] /= (1 - thread.Matrix[i].First(x => x != 0));
+                                    thread.Matrix[i][k] /= (1 - firstTransfer);
                                 
                                 var node = new GPSSNode(null, i, num+1);
                                 visited.Add(node);
@@ -217,16 +218,7 @@ namespace GPSSLib
         }
 
         private void ClearCode(bool IsExp)
-        {  
-            for (int i = 0; i < visited.Count; i++)
-            {
-                if (!Regex.IsMatch(Code, $@"TRANSFER 0.\d*,,label_{i}_\d\n"))
-                {
-                    Code = Regex.Replace(Code, $@"label_{i}_\d ", "");
-                }
-            }
-            
-            //форматирование кода
+        {                       
             var lines = Code.Split('\n').ToList();
 
             if (IsExp)
@@ -236,10 +228,11 @@ namespace GPSSLib
                     if (lines[i].StartsWith("TRANSFER"))
                     {
                         var line = lines[i].Split(',').Last();
-                        for (int j = 1; j < 20; j++)
+                        for (int j = 1; j < 10; j++)
                         {
                             if (lines[i + j].StartsWith(line))
                             {
+                                visited.RemoveAll(x => x.NodeCode.StartsWith(lines[i]));
                                 lines.RemoveAt(i);
                                 i--;
                                 break;
@@ -249,6 +242,16 @@ namespace GPSSLib
                 }
             }
 
+            Code = string.Join("\n", lines);
+
+            for (int i = 0; i < visited.Count; i++)
+            {                
+                if (!Regex.IsMatch(Code, $@"TRANSFER 0.\d*,,label_{i}_\d\n"))
+                {
+                    Code = Regex.Replace(Code, $@"label_{i}_\d ", "");
+                }
+            }
+            lines = Code.Split('\n').ToList();
             Code = "";
             for (int i = 0; i < lines.Count - 2; i++)
             {

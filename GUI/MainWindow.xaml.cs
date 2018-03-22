@@ -121,7 +121,7 @@ namespace GPSSLib
         private void CodeSaveItem_Click(object sender, RoutedEventArgs e)
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*|GPS Model (*.gps)|*.gps";
+            saveFileDialog.Filter = "Текстовые файлы (*.txt)|*.txt|Все файлы (*.*)|*.*|";
         
             if (saveFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
             {
