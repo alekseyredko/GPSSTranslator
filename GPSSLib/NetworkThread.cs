@@ -33,6 +33,7 @@ namespace GPSSLib
 
         public bool IsMatrixExpanded { get; private set; }
 
+        //расширение матрицы
         public void ExpandMatrix()
         {
             int oldLen = matrix.Length;
@@ -79,8 +80,7 @@ namespace GPSSLib
             this.Matrix = Matrix;
             this.NodeDesc = desc;
             
-            if (IsExpand)
-                ExpandMatrix();
+            if (IsExpand) ExpandMatrix();
             else Tree = GPSSNode.BuildTree(this.Matrix, ThreadNum);            
         }
     }

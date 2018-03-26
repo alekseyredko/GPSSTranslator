@@ -36,28 +36,28 @@ namespace GPSSLib
             switch (param[0])
             {
                 case "GENERATE":
-                    res = $"{param[0]} {param[1]}({string.Join(",", param.Skip(2))})\n" +
-                        $"queue net\nqueue net_{threadNum+1}\n";
+                    res = $"{param[0]} ({param[1]}({string.Join(",", param.Skip(2))}))\n" +
+                        $"queue net\nqueue net_{threadNum + 1}\n";
                     break;
                 case "TERMINATE":
-                    res = $"depart net\ndepart net_{threadNum+1}\n"+
+                    res = $"depart net\ndepart net_{threadNum + 1}\n" +
                         $"{nodeType}\n\n";
                     break;
                 case "FACILITY_ONECHANNEL":
-                    res = AddQueue(node.Name, threadNum)+
+                    res = AddQueue(node.Name, threadNum) +
                         $"SEIZE b{node.Name}\n" +
-                        AddDepart1(node.Name, threadNum)+
+                        AddDepart1(node.Name, threadNum) +
                         $"ADVANCE ({param[1]}({string.Join(",", param.Skip(2))}))\n" +
-                        $"RELEASE b{node.Name}\n"+
+                        $"RELEASE b{node.Name}\n" +
                         AddDepart2(node.Name, threadNum);
                     break;
                 case "FACILITY_MULTICHANNEL":
-                    res =  AddQueue(node.Name, threadNum)+
-                        $"b_{node.Name} STORAGE {param[1]} \n" +
+                    res = AddQueue(node.Name, threadNum) +
+                        $"b{node.Name} STORAGE {param[1]} \n" +
                         $"ENTER b{node.Name}\n" +
                         AddDepart1(node.Name, threadNum) +
                         $"ADVANCE ({param[2]}({string.Join(",", param.Skip(3))}))\n" +
-                        $"LEAVE b{node.Name}\n"+
+                        $"LEAVE b{node.Name}\n" +
                         AddDepart2(node.Name, threadNum);
                     break;
             }
@@ -65,7 +65,7 @@ namespace GPSSLib
             node.NodeCode = node.NodeCode.Substring(0, node.NodeCode.IndexOf(' ') + 1)
                 + res + node.NodeCode.Substring(node.NodeCode.IndexOf(' ') + 1);
         }
-     
+
         //переписать для добавления всех переменных
         private static string AddQueue(int name, int threadNum)
         {
@@ -95,8 +95,7 @@ namespace GPSSLib
             Code = "";
             for (int i = 0; i < networkData.ThreadCount; i++)
             {
-                visited = new List<GPSSNode>();
-                visited.Clear();
+                visited = new List<GPSSNode>();                
                 //добавление кода в узлы
                 if(!networkData.Threads[i].IsMatrixExpanded)
                 {
@@ -105,18 +104,16 @@ namespace GPSSLib
                     ShowCode(networkData.Threads[i].Tree);                   
                     //упорядочивание узлов в массиве по имени узла
                     visited.OrderBy(x => x.Name);
-                    networkData.Threads[i].Nodes = visited;                   
+                    //networkData.Threads[i].Nodes = visited;                   
                 }
-
                 else
                 {                   
-                    RecursiveBuild(networkData.Threads[i], visited, i);
-                    networkData.Threads[i].Nodes = visited;                    
+                    RecursiveBuild(networkData.Threads[i], visited, i);                               
                 }
-                Code = string.Join("\n", visited.Select(x => x.NodeCode));
-                ClearCode(networkData.Threads[i].IsMatrixExpanded);
-            }
-            
+                var code = string.Join("\n", visited.Select(x => x.NodeCode));
+                Code += ClearCode(networkData.Threads[i].IsMatrixExpanded, code);
+                networkData.Threads[i].Nodes = visited;
+            }            
             return Code;
         }
 
@@ -135,9 +132,9 @@ namespace GPSSLib
                         var node = new GPSSNode(null, i, num+1);
                         AddNodeCode(thread.GetNextNodeDesc, node, num);
                         visited.Add(node);
-                        RecursiveBuild(thread, visited,num, j, 0);
+                        RecursiveBuild(thread, visited, num, j, 0);
                     }
-                    else if(thread.Matrix[i].Any(x=>x != 0 && x < 1))
+                    else if(thread.Matrix[i].Any(x => x != 0 && x < 1))
                     {
                         double firstTransfer = thread.Matrix[i].First(x => x != 0);
                         if (visited.Any(x => x.Name == i))
@@ -146,8 +143,7 @@ namespace GPSSLib
                         for (int k = 0; k < thread.Matrix[i].Length; k++)
                         {                           
                             if (thread.Matrix[i][k] !=0)
-                            {
-                                //пересчитать вероятности, где больше двух переходов
+                            {                                
                                 if (thread.Matrix[i].Count(x => x != 0) > 2)
                                     thread.Matrix[i][k] /= (1 - firstTransfer);
                                 
@@ -172,7 +168,7 @@ namespace GPSSLib
             if (tree.Children.Count == 0 && GPSSNode.Last == tree.Name)
             {
                 visited.Add(tree);
-                Code += tree.NodeCode;
+                //Code += tree.NodeCode;
             }
             else
             {
@@ -181,7 +177,7 @@ namespace GPSSLib
                 { 
                     if (!visited.Exists(x => x.Name == tree.Children[i].Name))
                     {
-                        Code += tree.NodeCode;
+                        //Code += tree.NodeCode;
                         ShowCode(tree.Children[i]);
                     }
                 }
@@ -216,10 +212,10 @@ namespace GPSSLib
                 }
             }
         }
-
-        private void ClearCode(bool IsExp)
+        //тут страшно
+        private string ClearCode(bool IsExp, string code)
         {                       
-            var lines = Code.Split('\n').ToList();
+            var lines = code.Split('\n').ToList();
 
             if (IsExp)
             {
@@ -228,7 +224,7 @@ namespace GPSSLib
                     if (lines[i].StartsWith("TRANSFER"))
                     {
                         var line = lines[i].Split(',').Last();
-                        for (int j = 1; j < 10; j++)
+                        for (int j = 1; j < 8; j++)
                         {
                             if (lines[i + j].StartsWith(line))
                             {
@@ -242,31 +238,33 @@ namespace GPSSLib
                 }
             }
 
-            Code = string.Join("\n", lines);
+            code = string.Join("\n", lines);
 
             for (int i = 0; i < visited.Count; i++)
             {                
                 if (!Regex.IsMatch(Code, $@"TRANSFER 0.\d*,,label_{i}_\d\n"))
                 {
-                    Code = Regex.Replace(Code, $@"label_{i}_\d ", "");
+                    code = Regex.Replace(code, $@"label_{i}_\d ", "");
                 }
             }
-            lines = Code.Split('\n').ToList();
-            Code = "";
+
+            lines = code.Split('\n').ToList();
+            code = "";
             for (int i = 0; i < lines.Count - 2; i++)
             {
                 var line = lines[i].Split(' ');
                 if (lines[i].Count(x => x == ' ') == 1)
                 {
-                    Code += string.Format("{0,-12}{1,-12}{2,-12}", " ",
+                    code += string.Format("{0,-12}{1,-12}{2,-12}", " ",
                         lines[i].Split(' ')[0], lines[i].Split(' ')[1]) + '\n';
                 }
                 else if (lines[i]!="")
                 {
-                    Code += string.Format("{0,-12}{1,-12}{2}",
+                    code += string.Format("{0,-12}{1,-12}{2}",
                         lines[i].Split(' ')[0], lines[i].Split(' ')[1], lines[i].Split(' ')[2]) + '\n';
                 }
             }
-        }   
+            return code;
+        }         
     }
 }
