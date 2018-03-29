@@ -207,7 +207,7 @@ namespace GPSSLib
                             tree.Transfers[index] = tree.Transfers[index] / (1 - tree.Transfers[0]);
                         }
                         //изменено добавление transfer
-                        tree.NodeCode+=CodeBuilder.AddTransferCode(tree, tree.Transfers[index], tree.Children[index], num);
+                        tree.NodeCode+= AddTransferCode(tree, tree.Transfers[index], tree.Children[index], num);
                     }
                 }
             }
@@ -242,7 +242,7 @@ namespace GPSSLib
 
             for (int i = 0; i < visited.Count; i++)
             {                
-                if (!Regex.IsMatch(Code, $@"TRANSFER 0.\d*,,label_{i}_\d\n"))
+                if (!Regex.IsMatch(code, $@"TRANSFER 0.\d*,,label_{i}_\d\n"))
                 {
                     code = Regex.Replace(code, $@"label_{i}_\d ", "");
                 }
