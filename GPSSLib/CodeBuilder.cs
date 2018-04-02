@@ -111,7 +111,7 @@ namespace GPSSLib
                     RecursiveBuild(networkData.Threads[i], visited, i);                               
                 }
                 var code = string.Join("\n", visited.Select(x => x.NodeCode));
-                Code += ClearCode(networkData.Threads[i].IsMatrixExpanded, code);
+                Code += ClearCode(networkData.Threads[i].IsMatrixExpanded, code, i*networkData.ThreadCount);
                 networkData.Threads[i].Nodes = visited;
             }            
             return Code;
@@ -132,7 +132,7 @@ namespace GPSSLib
                         var node = new GPSSNode(null, i, num+1);
                         AddNodeCode(thread.GetNextNodeDesc, node, num);
                         visited.Add(node);
-                        RecursiveBuild(thread, visited, num, j, 0);
+                        RecursiveBuild(thread, visited, num, j);
                     }
                     else if(thread.Matrix[i].Any(x => x != 0 && x < 1))
                     {
@@ -145,7 +145,8 @@ namespace GPSSLib
                             if (thread.Matrix[i][k] !=0)
                             {                                
                                 if (thread.Matrix[i].Count(x => x != 0) > 2)
-                                    thread.Matrix[i][k] /= (1 - firstTransfer);
+                                    if(thread.Matrix[i][k]!=firstTransfer)
+                                        thread.Matrix[i][k] /= (1 - firstTransfer);
                                 
                                 var node = new GPSSNode(null, i, num+1);
                                 visited.Add(node);
@@ -204,7 +205,8 @@ namespace GPSSLib
                     {
                         if (tree.Children.Count > 2)
                         {
-                            tree.Transfers[index] = tree.Transfers[index] / (1 - tree.Transfers[0]);
+                            if(index!=0)
+                                tree.Transfers[index] = tree.Transfers[index] / (1 - tree.Transfers[0]);
                         }
                         //изменено добавление transfer
                         tree.NodeCode+= AddTransferCode(tree, tree.Transfers[index], tree.Children[index], num);
@@ -212,8 +214,10 @@ namespace GPSSLib
                 }
             }
         }
+
         //тут страшно
-        private string ClearCode(bool IsExp, string code)
+        //TODO: передать замену transfer
+        private string ClearCode(bool IsExp, string code, int thread = 0)
         {                       
             var lines = code.Split('\n').ToList();
 
@@ -244,8 +248,9 @@ namespace GPSSLib
             {                
                 if (!Regex.IsMatch(code, $@"TRANSFER 0.\d*,,label_{i}_\d\n"))
                 {
-                    code = Regex.Replace(code, $@"label_{i}_\d ", "");
+                    code = Regex.Replace(code, $@"label_{i}_\d", "");
                 }
+                else code = Regex.Replace(code, $@"label_{i}_\d", $@"label_{i+thread}");
             }
 
             lines = code.Split('\n').ToList();
